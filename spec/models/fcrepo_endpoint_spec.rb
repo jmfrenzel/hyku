@@ -19,7 +19,7 @@ RSpec.describe FcrepoEndpoint do
 
     it 'is false if the service is down' do
       allow(ActiveFedora::Fedora.instance.connection).to receive(:head).with('/').and_raise(RuntimeError)
-      expect(subject.ping).to eq false
+      expect(subject.ping).to be_falsey
     end
   end
 end

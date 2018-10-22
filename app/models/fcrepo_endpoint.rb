@@ -11,6 +11,8 @@ class FcrepoEndpoint < Endpoint
 
   def ping
     ActiveFedora::Fedora.instance.connection.head('/').response.success?
+  rescue Ldp::NotFound
+    ActiveFedora.fedora.connection.http.head.success?
   rescue StandardError
     false
   end
