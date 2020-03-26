@@ -25,9 +25,9 @@ RSpec.describe SolrEndpoint do
       allow(ActiveFedora::SolrService.instance).to receive(:conn)
         .and_return(double(options: af_options))
       allow(RSolr).to receive(:connect)
-        .with("read_timeout" => 120,
-              "open_timeout" => 120,
-              "url" => "http://example.com/solr/")
+        .with(hash_including("read_timeout" => 120,
+                             "open_timeout" => 120,
+                             "url" => "http://example.com/solr/"))
         .and_return(result)
     end
 
@@ -43,6 +43,7 @@ RSpec.describe SolrEndpoint do
       # Mocking on the subject, because mocking RSolr.connect causes doubles to leak for some reason
       allow(subject).to receive(:connection).and_return(mock_connection)
     end
+
     it 'checks if the service is up' do
       allow(mock_connection).to receive(:get).with('admin/ping').and_return('status' => 'OK')
       expect(subject.ping).to be_truthy

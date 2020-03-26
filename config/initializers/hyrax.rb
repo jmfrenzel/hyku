@@ -162,6 +162,18 @@ Hyrax.config do |config|
   #   config.browse_everything = nil
   # end
   config.browse_everything = nil
+  
+  config.iiif_image_server = true
+  
+  config.iiif_image_url_builder = lambda do |file_id, base_url, size|
+    Riiif::Engine.routes.url_helpers.image_url(file_id, host: base_url, size: size)
+  end
+  
+  config.iiif_info_url_builder = lambda do |file_id, base_url|
+    uri = Riiif::Engine.routes.url_helpers.info_url(file_id, host: base_url)
+    uri.sub(%r{/info\.json\Z}, '')
+  end
+  
 end
 
 Date::DATE_FORMATS[:standard] = "%m/%d/%Y"
@@ -169,3 +181,8 @@ Date::DATE_FORMATS[:standard] = "%m/%d/%Y"
 Qa::Authorities::Local.register_subauthority('subjects', 'Qa::Authorities::Local::TableBasedAuthority')
 Qa::Authorities::Local.register_subauthority('languages', 'Qa::Authorities::Local::TableBasedAuthority')
 Qa::Authorities::Local.register_subauthority('genres', 'Qa::Authorities::Local::TableBasedAuthority')
+
+# set bulkrax default work type to first curation_concern if it isn't already set
+if Settings.bulkrax.enabled && Bulkrax.default_work_type.blank?
+  Bulkrax.default_work_type = Hyrax.config.curation_concerns.first.to_s
+end

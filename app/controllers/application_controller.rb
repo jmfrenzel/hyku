@@ -1,4 +1,5 @@
 class ApplicationController < ActionController::Base
+  include HykuHelper
   # Prevent CSRF attacks by raising an exception.
   # For APIs, you may want to use :null_session instead.
   protect_from_forgery with: :exception, prepend: true
@@ -16,10 +17,11 @@ class ApplicationController < ActionController::Base
   include Hyrax::ThemedLayoutController
   with_themed_layout '1_column'
 
-  helper_method :peek_enabled?, :current_account, :admin_host?
+  helper_method :current_account, :admin_host?
 
   before_action :require_active_account!, if: :multitenant?
   before_action :set_account_specific_connections!
+  before_action :elevate_single_tenant!, if: :singletenant?
   skip_after_action :discard_flash_if_xhr
 
   before_action :add_honeybadger_context
@@ -30,14 +32,9 @@ class ApplicationController < ActionController::Base
 
   private
 
-    def peek_enabled?
-      can? :peek, Hyku::Application
-    end
-
     def require_active_account!
       return unless Settings.multitenancy.enabled
-      return if devise_controller? || peek_controller?
-
+      return if devise_controller?
       raise Apartment::TenantNotFound, "No tenant for #{request.host}" unless current_account.persisted?
     end
 
@@ -49,15 +46,34 @@ class ApplicationController < ActionController::Base
       Settings.multitenancy.enabled
     end
 
+    def singletenant?
+      !Settings.multitenancy.enabled
+    end
+
+    def elevate_single_tenant!
+      AccountElevator.switch!(current_account.cname) if current_account && root_host?
+    end
+
+    def root_host?
+      Account.canonical_cname(request.host) == Account.root_host
+    end
+
     def admin_host?
       return false unless multitenant?
-
       Account.canonical_cname(request.host) == Account.admin_host
     end
 
     def current_account
       @current_account ||= Account.from_request(request)
-      @current_account ||= Account.single_tenant_default
+      @current_account ||= if Settings.multitenancy.enabled
+                             Account.new do |a|
+                               a.build_solr_endpoint
+                               a.build_fcrepo_endpoint
+                               a.build_redis_endpoint
+                             end
+                           else
+                             Account.single_tenant_default
+                           end
     end
 
     # Add context information to the lograge entries
@@ -74,9 +90,5 @@ class ApplicationController < ActionController::Base
 
     def ssl_configured?
       ActiveRecord::Type::Boolean.new.cast(Settings.ssl_configured)
-    end
-
-    def peek_controller?
-      is_a? Peek::ResultsController
     end
 end

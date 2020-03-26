@@ -1,4 +1,7 @@
 Rails.application.routes.draw do
+  concern :oai_provider, BlacklightOaiProvider::Routes.new
+
+  mount Riiif::Engine => 'images', as: :riiif if Hyrax.config.iiif_image_server?
 
   if Settings.multitenancy.enabled
     constraints host: Account.admin_host do
@@ -30,17 +33,18 @@ Rails.application.routes.draw do
 
   mount Blacklight::Engine => '/'
   mount Hyrax::Engine, at: '/'
+  if Settings.bulkrax.enabled
+    mount Bulkrax::Engine, at: '/'
+  end
 
   concern :searchable, Blacklight::Routes::Searchable.new
   concern :exportable, Blacklight::Routes::Exportable.new
-
-  curation_concerns_basic_routes do
-    member do
-      get :manifest
-    end
-  end
+  
+  curation_concerns_basic_routes
 
   resource :catalog, only: [:index], as: 'catalog', path: '/catalog', controller: 'catalog' do
+    concerns :oai_provider
+
     concerns :searchable
   end
 
@@ -58,6 +62,7 @@ Rails.application.routes.draw do
 
   namespace :admin do
     resource :account, only: [:edit, :update]
+    resource :work_types, only: [:edit, :update]
     resources :users, only: [:destroy]
     resources :groups do
       member do
@@ -72,7 +77,4 @@ Rails.application.routes.draw do
       end
     end
   end
-
-  mount Peek::Railtie => '/peek'
-  mount Riiif::Engine => '/images', as: 'riiif'
 end

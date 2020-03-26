@@ -2,10 +2,12 @@ source 'https://rubygems.org'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '~> 5.1.1'
+
+gem 'activerecord-nulldb-adapter'
 # Use sqlite3 as the database for Active Record
 gem 'pg'
 # Use Puma as the app server
-gem 'puma', '~> 3.7'
+gem 'puma', '~> 3.12'
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 5.0'
 # Use Uglifier as compressor for JavaScript assets
@@ -28,7 +30,7 @@ gem 'jbuilder', '~> 2.5'
 # gem 'bcrypt', '~> 3.1.7'
 
 gem 'active-fedora', '>= 11.1.4'
-
+gem 'flutie'
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
 
@@ -53,13 +55,14 @@ end
 
 group :test do
   gem 'capybara'
-  gem 'chromedriver-helper'
   gem 'database_cleaner'
-  gem 'factory_girl_rails'
+  gem 'factory_bot_rails'
   # rack-test >= 0.71 does not work with older Capybara versions (< 2.17). See #214 for more details
   gem 'rack-test', '0.7.0'
   gem 'rails-controller-testing'
+  gem 'rspec_junit_formatter'
   gem 'selenium-webdriver'
+  gem 'webdrivers', '~> 4.0'
   gem 'webmock'
 end
 
@@ -75,9 +78,14 @@ group :development do
   gem 'scss_lint', require: false
 end
 
-gem 'blacklight', '~> 6.7'
+# Bulkrax
+gem 'bulkrax', git: 'https://github.com/samvera-labs/bulkrax.git'
+gem 'willow_sword', git: 'https://github.com/notch8/willow_sword.git'
 
-gem 'hyrax', '~>2.3.0'
+gem 'blacklight', '~> 6.7'
+gem 'blacklight_oai_provider', '~> 6.0'
+
+gem 'hyrax', '~> 2.5.1'
 gem 'rsolr', '~> 2.0'
 
 gem 'devise'
@@ -90,22 +98,12 @@ gem 'config', '~> 1.5', '>= 1.5.1'
 gem 'is_it_working'
 gem 'rolify'
 
-gem 'peek'
-gem 'peek-faraday'
-gem 'peek-git'
-gem 'peek-performance_bar'
-gem 'peek-pg'
-gem 'peek-redis'
-
 gem 'flipflop', '~> 2.3'
 gem 'lograge'
 
 gem 'zk'
 
-gem 'mods', '~> 2.1'
-gem 'riiif', '~> 1.1'
-
-gem 'iiif_manifest', '~> 0.5.0'
+gem 'mods', '~> 2.4'
 
 group :aws, :test do
   gem 'carrierwave-aws'
@@ -115,9 +113,15 @@ group :aws do
   gem 'active_elastic_job', '~> 2.0'
 end
 
-gem 'peek-sidekiq'
 gem 'sidekiq'
 
 gem 'secure_headers'
 
 gem 'honeybadger', '~> 3.0'
+
+gem 'codemirror-rails'
+gem 'riiif', '~> 1.1'
+
+gem 'bootstrap-datepicker-rails'
+gem 'parser', '~> 2.5.3'
+gem 'tether-rails'
